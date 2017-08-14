@@ -244,8 +244,10 @@ if [ "${OPENSHIFT_FLAVOR}" == "minishift" ]; then
     sed "s/    che.docker.server_evaluation_strategy.custom.external.protocol: https/    che.docker.server_evaluation_strategy.custom.external.protocol: http/" | \
     sed "s/    che-openshift-precreate-subpaths: \"false\"/    che-openshift-precreate-subpaths: \"true\"/" | \
     sed "s/    che.predefined.stacks.reload_on_start: \"true\"/    che.predefined.stacks.reload_on_start: \"false\"/" | \
-    sed "s/    keycloak-oso-endpoint:.*/    keycloak-oso-endpoint: ${KEYCLOAK_OSO_ENDPOINT}/" | \
-    sed "s/    keycloak-github-endpoint:.*/    keycloak-github-endpoint: ${KEYCLOAK_GITHUB_ENDPOINT}/" | \
+    # we have to use somoether delimeter than '/' as '/' can cause issues with URLS like http://...
+    sed "s%    keycloak-oso-endpoint:.*%    keycloak-oso-endpoint: \"${KEYCLOAK_OSO_ENDPOINT}\"%" | \
+    # we have to use somoether delimeter than '/' as '/' can cause issues with URLS like http://...
+    sed "s%    keycloak-github-endpoint:.*%    keycloak-github-endpoint: \"${KEYCLOAK_GITHUB_ENDPOINT}\"%" | \
     grep -v -e "tls:" -e "insecureEdgeTerminationPolicy: Redirect" -e "termination: edge" | \
     if [ "${CHE_KEYCLOAK_DISABLED}" == "true" ]; then sed "s/    keycloak-disabled: \"false\"/    keycloak-disabled: \"true\"/" ; else cat -; fi | \
     oc apply --force=true -f -
@@ -253,8 +255,10 @@ else
   echo "[CHE] Deploying Che on OSIO (image ${CHE_IMAGE})"
   curl -sSL http://central.maven.org/maven2/io/fabric8/online/apps/che/"${OSIO_VERSION}"/che-"${OSIO_VERSION}"-openshift.yml | \
     if [ ! -z "${OPENSHIFT_NAMESPACE_URL+x}" ]; then sed "s/    hostname-http:.*/    hostname-http: ${OPENSHIFT_NAMESPACE_URL}/" ; else cat -; fi | \
-    sed "s/    keycloak-oso-endpoint:.*/    keycloak-oso-endpoint: ${KEYCLOAK_OSO_ENDPOINT}/" | \
-    sed "s/    keycloak-github-endpoint:.*/    keycloak-github-endpoint: ${KEYCLOAK_GITHUB_ENDPOINT}/" | \
+    # we have to use somoether delimeter than '/' as '/' can cause issues with URLS like http://...
+    sed "s%    keycloak-oso-endpoint:.*%    keycloak-oso-endpoint: \"${KEYCLOAK_OSO_ENDPOINT}\"%" | \
+    # we have to use somoether delimeter than '/' as '/' can cause issues with URLS like http://...
+    sed "s%    keycloak-github-endpoint:.*%    keycloak-github-endpoint: \"${KEYCLOAK_GITHUB_ENDPOINT}\"%" | \
     sed "s/          image:.*/          image: \"${CHE_IMAGE_SANITIZED}\"/" | \
     if [ "${CHE_KEYCLOAK_DISABLED}" == "true" ]; then sed "s/    keycloak-disabled: \"false\"/    keycloak-disabled: \"true\"/" ; else cat -; fi | \
     oc apply --force=true -f -
